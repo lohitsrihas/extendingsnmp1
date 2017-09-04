@@ -1,0 +1,87 @@
+################################### Extending SNMP Agent #########################################
+
+
+This assignment shows how to extend an SNMP agent to include custom OIDs to monitor metrics
+
+
+################################### Installation #################################################
+
+Operating System: Ubuntu 16.04 LTS
+ 
+Open a terminal using:
+
+	CTRL+ALT+T
+
+Download the net-snmp package using the following command:
+
+	$ wget http://sourceforge.net/projects/net-snmp/files/net-snmp/5.7.3/net-snmp-5.7.3.tar.gz
+
+Note that the Net-SNMP package depends on the Perl development package. You can install using the following command:
+
+	$ sudo apt-get install libperl-dev
+
+Extract the downloaded package, enter into the main directory and configure using the following commands:
+
+	$ tar -xvzf net-snmp-5.7.3.tar.gz
+	$ cd net-snmp-5.7.3/
+	$ sudo ./configure
+
+This will throw up a series of questions that will help the Net-SNMP suite determine how the SNMP-related applications are to function.
+
+After configuration, compile and install the package using the following two commands:
+
+	$ sudo make
+	$ sudo make install
+
+Now, Execute the following command to download and install the Management Information Base (MIB) files on your system:
+
+	$ sudo apt-get install snmp-mibs-downloader
+
+Download and install SNMP agent :– 
+	A daemon process that performs network management functions as ordered by the manager, which itself is a central system used for monitoring traffic seen by the various SNMP agents. This can be done using the following command:
+
+	$ sudo apt-get install snmpd
+
+Now start the daemon process using the following command:
+
+	$ /etc/init.d/snmpd start
+
+This should start the network management service on your system.
+
+################################ Execution : Step-by-Step #########################################
+
+
+
+Note: Note your IP address, and replace the snmpagent.conf data with snmpd.conf in /etc/snmp/snmpd.conf
+
+Basic command syntax for our usage is:
+	$ snmpget -v <SNMP_version> -c <Community> <IP_address> <OID>
+
+#Version	-	determines the SNMP version, here we use SNMP version 1 only
+#Community	-	determines a public or a private community, here we use public community
+#IP_address	-	determines the IP address of the Sub-agent device, can also be localhost(127.0.0.1)
+#OID		-	determines the OIDs requested, here our custom OID is .1.3.6.1.4.1.4171.40.0
+
+
+For example, send an SNMP request using the following command:
+
+	$ snmpget -v1 -cpublic 127.0.0.1 .1.3.6.1.4.1.4171.40.1 .1.3.6.1.4.1.4171.40.3 
+
+Note: If you are sending a request from another device, then specify the IP address of device in which the sub-agent is present.
+
+Then you will get the Counter values of the specified OIDs.
+
+The counter value are generated based on the following function:
+ 
+	y(t)=C*T;  
+
+Where,
+
+	T is the current UNIX time of the agent, integer seconds since 1970-01-01. 
+	C is the bitrate of the process [0,10e9] bit/second. 
+	C is provided though a configuration file, 'counters.conf' that has the following format
+
+OIDs can be non-sequential order
+
+
+################################################## END ##################################################
