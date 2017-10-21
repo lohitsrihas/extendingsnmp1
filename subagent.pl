@@ -1,8 +1,9 @@
 #!/usr/bin/perl
 
 use NetSNMP::agent (':all');
-use NetSNMP::ASN;
+use NetSNMP::ASN qw(:all);
 use NetSNMP::OID;
+
 $| = 1; #disable the output buffering
 sub hello_handler
 {
@@ -23,19 +24,42 @@ sub hello_handler
 			if ($oid > new NetSNMP::OID("1.3.6.1.4.1.4171.40.1"))
 			{
 				my @data = `cat /usr/share/snmp/counters.conf`;
-				my $lastoid = $lastoid - 2;
-				my @counter = split(',',$data[$lastoid]);
-				my $value = $counter[1];
-				my $result = $value*time;
-				
-				if($result > (2**32))
+				my $lastoid = $lastoid - 1;
+				my @column1;
+				my @column2;
+				#Finding whether the OID counter value is present in the counters.conf file or not
+
+				for (my $j  = 0;$j <= $#data; $j++)
 				{
-					$result = $result & 0x00000000ffffffff;
-					$request->setValue(ASN_COUNTER,$result);	
-				}				
+#					$counter0 = $data[$j];
+					@counter = split(',',$data[$j]);
+					push @column1, $counter[0];
+					push @column2, $counter[1];
+				}
+
+				if ($lastoid ~~ @column1)
+				{
+					for (my $i = 0; $i <= $#column1 ; $i++)
+					{	
+						if ($column1[$i] == $lastoid)
+						{
+							my $value = $column2[$i];
+							my $result = $value*time;
+							if($result > (2**32))
+							{
+								$result = $result & 0x00000000ffffffff;
+								$request->setValue(ASN_COUNTER,$result);	
+							}				
+							else
+							{
+								$request->setValue(ASN_COUNTER,$result);
+							}
+						}
+					}
+				}
 				else
 				{
-					$request->setValue(ASN_COUNTER,$result);
+					$request->setValue(ASN_OCTET_STR, "Incorrect OID Entered");
 				}
 				@data=();
 			}
