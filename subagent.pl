@@ -23,21 +23,19 @@ sub hello_handler
 			}
 			if ($oid > new NetSNMP::OID("1.3.6.1.4.1.4171.40.1"))
 			{
-				my @data = `cat /usr/share/snmp/counters.conf`;
+				my @data = `cat /tmp/A1/counters.conf`;
 				my $lastoid = $lastoid - 1;
 				my @column1;
 				my @column2;
-				#Finding whether the OID counter value is present in the counters.conf file or not
-
-				for (my $j  = 0;$j <= $#data; $j++)
+#	Finding whether the OID counter value is present in the counters.conf file or not
+				for (my $j=0;$j <= $#data; $j++)	
 				{
-#					$counter0 = $data[$j];
 					@counter = split(',',$data[$j]);
 					push @column1, $counter[0];
 					push @column2, $counter[1];
 				}
-
-				if ($lastoid ~~ @column1)
+#	Searching for Incorrect OID's requested
+				if (grep { $_ == $lastoid } @column1 )	#If the requested OID is present in counters.conf file then the loop is executed
 				{
 					for (my $i = 0; $i <= $#column1 ; $i++)
 					{	
@@ -45,7 +43,7 @@ sub hello_handler
 						{
 							my $value = $column2[$i];
 							my $result = $value*time;
-							if($result > (2**32))
+							if($result > (2**31)-1)
 							{
 								$result = $result & 0x00000000ffffffff;
 								$request->setValue(ASN_COUNTER,$result);	
@@ -57,7 +55,7 @@ sub hello_handler
 						}
 					}
 				}
-				else
+				else #If the requested OID is not present in counters.conf file
 				{
 					$request->setValue(ASN_OCTET_STR, "Incorrect OID Entered");
 				}
